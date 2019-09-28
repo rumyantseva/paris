@@ -30,8 +30,19 @@ func main() {
 		Handler: r,
 	}
 
+	diagRouter := mux.NewRouter()
+	diagRouter.HandleFunc("/health", func(
+		w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+	diagRouter.HandleFunc("/ready", func(
+		w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
 	diag := http.Server{
-		Addr: net.JoinHostPort("", diagPort),
+		Addr:    net.JoinHostPort("", diagPort),
+		Handler: diagRouter,
 	}
 
 	go func() {
