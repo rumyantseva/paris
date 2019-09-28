@@ -60,12 +60,14 @@ func main() {
 
 	go func() {
 		logger.Info("Business logic server is preparing...")
-		server.ListenAndServe()
+		err := server.ListenAndServe()
+		logger.Errorf("%v", err)
 	}()
 
 	go func() {
 		logger.Info("Diagnostics server is preparing...")
-		diag.ListenAndServe()
+		err := diag.ListenAndServe()
+		logger.Errorf("%v", err)
 	}()
 
 	interrupt := make(chan os.Signal, 1)
@@ -77,5 +79,6 @@ func main() {
 	timeout, cancelFunc := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancelFunc()
 
-	diag.Shutdown(timeout)
+	err := diag.Shutdown(timeout)
+	logger.Errorf("%v", err)
 }
