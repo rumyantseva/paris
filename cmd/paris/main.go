@@ -58,27 +58,45 @@ func main() {
 		Handler: diagRouter,
 	}
 
+	shutdown := make(chan error, 2)
+
 	go func() {
 		logger.Info("Business logic server is preparing...")
 		err := server.ListenAndServe()
-		logger.Errorf("%v", err)
+		if err != nil && err != http.ErrServerClosed {
+			shutdown <- err
+		}
 	}()
 
 	go func() {
 		logger.Info("Diagnostics server is preparing...")
 		err := diag.ListenAndServe()
-		logger.Errorf("%v", err)
+		if err != nil && err != http.ErrServerClosed {
+			shutdown <- err
+		}
 	}()
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
 
-	x := <-interrupt
-	logger.Infof("Received `%v`. Application stopped.", x)
+	select {
+	case x := <-interrupt:
+		logger.Infof("Received `%v`.", x)
+
+	case err := <-shutdown:
+		logger.Infof("Received shutdown message: %v", err)
+	}
 
 	timeout, cancelFunc := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancelFunc()
 
 	err := diag.Shutdown(timeout)
-	logger.Errorf("%v", err)
+	if err != nil {
+		logger.Error(err)
+	}
+
+	err = server.Shutdown(timeout)
+	if err != nil {
+		logger.Error(err)
+	}
 }
