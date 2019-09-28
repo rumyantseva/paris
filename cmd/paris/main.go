@@ -11,12 +11,18 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
+
+	"github.com/rumyantseva/paris/internal/version"
 )
 
 func main() {
-	logger := logrus.New()
+	logger := logrus.New().WithField("version", version.Version)
 
-	logger.Info("The aplication is starting...")
+	logger.Infof(
+		"The application [%v %v] is starting...",
+		version.BuildTime,
+		version.Commit,
+	)
 
 	port := os.Getenv("PORT")
 	if port == "" {
