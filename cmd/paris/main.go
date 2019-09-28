@@ -1,9 +1,13 @@
 package main
 
 import (
+	"context"
 	"net"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -37,6 +41,9 @@ func main() {
 	})
 	diagRouter.HandleFunc("/ready", func(
 		w http.ResponseWriter, _ *http.Request) {
+		logger.Info("Received ready request")
+		time.Sleep(time.Minute)
+		/// ...
 		w.WriteHeader(http.StatusOK)
 	})
 
@@ -50,6 +57,19 @@ func main() {
 		server.ListenAndServe()
 	}()
 
-	logger.Info("Diagnostics server is preparing...")
-	diag.ListenAndServe()
+	go func() {
+		logger.Info("Diagnostics server is preparing...")
+		diag.ListenAndServe()
+	}()
+
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
+
+	x := <-interrupt
+	logger.Infof("Received `%v`. Application stopped.", x)
+
+	timeout, cancelFunc := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancelFunc()
+
+	diag.Shutdown(timeout)
 }
