@@ -100,9 +100,9 @@ func main() {
 		logger.Error(err)
 	}
 
-	PublicFunc()
+	PublicFuncA()
 }
 
-func PublicFunc() {
+func PublicFuncA() {
 
 }
