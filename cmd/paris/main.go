@@ -99,4 +99,10 @@ func main() {
 	if err != nil {
 		logger.Error(err)
 	}
+
+	PublicFunc()
+}
+
+func PublicFunc() {
+
 }
