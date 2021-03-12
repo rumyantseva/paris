@@ -3,7 +3,7 @@ PROJECT?=github.com/rumyantseva/paris
 GOOS?=darwin
 GOARCH?=amd64
 
-RELEASE?=0.0.0
+RELEASE := $(shell git tag -l | tail -1 | grep -E "v.+"|| echo devel)
 COMMIT := git-$(shell git rev-parse --short HEAD)
 BUILD_TIME := $(shell date -u '+%Y-%m-%d_%H:%M:%S')
 
